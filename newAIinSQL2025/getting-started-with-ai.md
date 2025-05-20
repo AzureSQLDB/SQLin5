@@ -386,7 +386,7 @@ WITH (
 To test the embeddings endpoint, run the following SQL:
 
 ```sql
-select AI_GENERATE_EMBEDDINGS(N'test text' MODEL ollama);
+select AI_GENERATE_EMBEDDINGS(N'test text' USE MODEL ollama);
 ```
 
 You should see a JSON vector array returned similar to the following:
@@ -442,7 +442,7 @@ BEGIN
         AND p.ProductModelID = m.ProductModelID
         AND p.ProductID = @ProductID
     );
-    UPDATE [SalesLT].[Product] SET [embeddings] = AI_GENERATE_EMBEDDINGS(@text MODEL ollama), [chunk] = @text WHERE ProductID = @ProductID;
+    UPDATE [SalesLT].[Product] SET [embeddings] = AI_GENERATE_EMBEDDINGS(@text USE MODEL ollama), [chunk] = @text WHERE ProductID = @ProductID;
 
     DELETE FROM #MYTEMP WHERE ProductID = @ProductID;
 
@@ -482,7 +482,7 @@ Use the following SQL to run similarity searches using VECTOR_DISTANCE.
 
 ```sql
 declare @search_text nvarchar(max) = 'I am looking for a red bike and I dont want to spend a lot'
-declare @search_vector vector(768) = AI_GENERATE_EMBEDDINGS(@search_text MODEL ollama);
+declare @search_vector vector(768) = AI_GENERATE_EMBEDDINGS(@search_text USE MODEL ollama);
 SELECT TOP(4)
 p.ProductID, p.Name , p.chunk,
 vector_distance('cosine', @search_vector, p.embeddings) AS distance
@@ -492,7 +492,7 @@ ORDER BY distance;
 
 ```sql
 declare @search_text nvarchar(max) = 'I am looking for a safe helmet that does not weigh much'
-declare @search_vector vector(768) = AI_GENERATE_EMBEDDINGS(@search_text MODEL ollama);
+declare @search_vector vector(768) = AI_GENERATE_EMBEDDINGS(@search_text USE MODEL ollama);
 SELECT TOP(4)
 p.ProductID, p.Name , p.chunk,
 vector_distance('cosine', @search_vector, p.embeddings) AS distance
@@ -502,7 +502,7 @@ ORDER BY distance;
 
 ```sql
 declare @search_text nvarchar(max) = 'Do you sell any padded seats that are good on trails?'
-declare @search_vector vector(768) = AI_GENERATE_EMBEDDINGS(@search_text MODEL ollama);
+declare @search_vector vector(768) = AI_GENERATE_EMBEDDINGS(@search_text USE MODEL ollama);
 SELECT TOP(4)
 p.ProductID, p.Name , p.chunk,
 vector_distance('cosine', @search_vector, p.embeddings) AS distance
@@ -546,7 +546,7 @@ Use the following SQL to run the similarity search using both VECTOR_SEARCH and 
 ```sql
 -- ANN Search
 DECLARE @search_text NVARCHAR (MAX) = 'Do you sell any padded seats that are good on trails?';
-DECLARE @search_vector VECTOR (768) = AI_GENERATE_EMBEDDINGS(@search_text MODEL ollama);
+DECLARE @search_vector VECTOR (768) = AI_GENERATE_EMBEDDINGS(@search_text USE MODEL ollama);
 SELECT t.chunk,
        s.distance
 FROM vector_search(
@@ -587,7 +587,7 @@ GO
 Finally, create chunks of text to be embedded using both functions:
 
 ```sql
-SELECT c.*, AI_GENERATE_EMBEDDINGS(c.chunk MODEL model_name)
+SELECT c.*, AI_GENERATE_EMBEDDINGS(c.chunk USE MODEL model_name)
 FROM textchunk t
 CROSS APPLY
    AI_GENERATE_CHUNKS(source = text_to_chunk, chunk_type = N'FIXED', chunk_size = 50, overlap = 10) c
